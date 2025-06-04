@@ -62,11 +62,11 @@ class FreenoveMediaKitMax : public WifiBoard {
  private:
   Button boot_button_;
   LcdDisplay *display_;
-  Button adcButton0;
-  Button adcButton1;
-  Button adcButton2;
-  Button adcButton3;
-  Button adcButton4;
+  AdcButton adcButton0;
+  AdcButton adcButton1;
+  AdcButton adcButton2;
+  AdcButton adcButton3;
+  AdcButton adcButton4;
 
   void resetLcd() {
     // 配置引脚为输出模式，并设置默认电平为低
