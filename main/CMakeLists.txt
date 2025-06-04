@@ -140,6 +140,8 @@ elseif(CONFIG_BOARD_TYPE_ESP32_CGC)
     set(BOARD_TYPE "esp32-cgc")
 elseif(CONFIG_BOARD_TYPE_Freenove_Media_Kit)
     set(BOARD_TYPE "freenove-media-kit")
+elseif(CONFIG_BOARD_TYPE_Freenove_Media_Kit_Max)
+    set(BOARD_TYPE "freenove-media-kit-max")
 endif()
 file(GLOB BOARD_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/boards/${BOARD_TYPE}/*.cc
