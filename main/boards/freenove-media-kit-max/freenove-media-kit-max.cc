@@ -3,6 +3,7 @@
 #include <esp_lcd_panel_vendor.h>
 #include <esp_log.h>
 #include <wifi_station.h>
+#include "esp32_camera.h"
 
 #include "application.h"
 #include "audio_codecs/no_audio_codec.h"
@@ -67,6 +68,7 @@ class FreenoveMediaKitMax : public WifiBoard {
   AdcButton adcButton2;
   AdcButton adcButton3;
   AdcButton adcButton4;
+  Esp32Camera* camera_;
 
   void resetLcd() {
     // 配置引脚为输出模式，并设置默认电平为低
@@ -166,7 +168,49 @@ class FreenoveMediaKitMax : public WifiBoard {
     thing_manager.AddThing(iot::CreateThing("Speaker"));
     thing_manager.AddThing(iot::CreateThing("Screen"));
   }
+void InitializeCamera() {
+        // Open camera power
+        camera_config_t config = {};
+        config.ledc_channel = LEDC_CHANNEL_0;  // LEDC通道选择  用于生成XCLK时钟 但是S3不用
+        config.ledc_timer = LEDC_TIMER_0; // LEDC timer选择  用于生成XCLK时钟 但是S3不用
+        config.pin_d0 = CAMERA_PIN_D0;
+        config.pin_d1 = CAMERA_PIN_D1;
+        config.pin_d2 = CAMERA_PIN_D2;
+        config.pin_d3 = CAMERA_PIN_D3;
+        config.pin_d4 = CAMERA_PIN_D4;
+        config.pin_d5 = CAMERA_PIN_D5;
+        config.pin_d6 = CAMERA_PIN_D6;
+        config.pin_d7 = CAMERA_PIN_D7;
+        config.pin_xclk = CAMERA_PIN_XCLK;
+        config.pin_pclk = CAMERA_PIN_PCLK;
+        config.pin_vsync = CAMERA_PIN_VSYNC;
+        config.pin_href = CAMERA_PIN_HREF;
+        config.pin_sccb_sda = CAMERA_PIN_SIOD;   // 这里写-1 表示使用已经初始化的I2C接口
+        config.pin_sccb_scl = CAMERA_PIN_SIOC;
 
+        config.pin_pwdn = CAMERA_PIN_PWDN;
+        config.pin_reset = CAMERA_PIN_RESET;
+        config.xclk_freq_hz = 20000000;
+        config.pixel_format = PIXFORMAT_RGB565;
+        config.frame_size = FRAMESIZE_VGA;
+        config.jpeg_quality = 12;
+        config.fb_count = 1;
+        config.fb_location = CAMERA_FB_IN_PSRAM;
+        config.grab_mode = CAMERA_GRAB_WHEN_EMPTY;
+
+        // camera_ = new Esp32Camera(config);
+        esp_err_t err = esp_camera_init(&config); // 测试相机是否存在
+        if (err != ESP_OK) {
+            ESP_LOGE(TAG, "Camera is not plugged in or not supported, error: %s", esp_err_to_name(err));
+            // 如果摄像头初始化失败，设置 camera_ 为 nullptr
+            camera_ = nullptr;
+            return;
+        }else
+        {
+            esp_camera_deinit();// 释放之前的摄像头资源,为正确初始化做准备
+            camera_ = new Esp32Camera(config);
+        }
+    }
  public:
   FreenoveMediaKitMax()
       : boot_button_(BOOT_BUTTON_GPIO),
@@ -181,6 +225,7 @@ class FreenoveMediaKitMax : public WifiBoard {
     InitializeAdcButtons();
     InitializeIot();
     GetBacklight()->SetBrightness(100);
+    InitializeCamera();
   }
 
   virtual Led *GetLed() override {
@@ -204,6 +249,10 @@ class FreenoveMediaKitMax : public WifiBoard {
     static PwmBacklight backlight(DISPLAY_BACKLIGHT_PIN,
                                   DISPLAY_BACKLIGHT_OUTPUT_INVERT);
     return &backlight;
+  }
+
+  virtual Camera* GetCamera() override {
+        return camera_;
   }
 };
 

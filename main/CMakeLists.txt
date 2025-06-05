@@ -190,7 +190,6 @@ elseif(CONFIG_BOARD_TYPE_ESP32_S3_1_54_MUMA)
     set(BOARD_TYPE "sp-esp32-s3-1.54-muma")
 elseif(CONFIG_BOARD_TYPE_ESP32_S3_1_28_BOX)
     set(BOARD_TYPE "sp-esp32-s3-1.28-box")
-
 endif()
 file(GLOB BOARD_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/boards/${BOARD_TYPE}/*.cc
@@ -268,47 +267,6 @@ add_custom_target(lang_header ALL
     DEPENDS ${LANG_HEADER}
 )
 
-message(STATUS "PROJECT_SOURCE_DIR: ${PROJECT_SOURCE_DIR}")
-message(STATUS "CMAKE_SOURCE_DIR: ${CMAKE_SOURCE_DIR}")
-message(STATUS "IDF_PATH: ${IDF_PATH}")
-message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
-
-# main/CMakeLists.txt
-
-# 定义按钮组件的路径
-set(BUTTON_COMPONENT_DIR "${CMAKE_SOURCE_DIR}/managed_components/espressif__button")
-
-# 检查组件是否存在
-if(NOT EXISTS "${BUTTON_COMPONENT_DIR}/idf_component.yml")
-    message(FATAL_ERROR "Button component missing! Path: ${BUTTON_COMPONENT_DIR}")
-endif()
-
-# 读取版本信息
-file(READ "${BUTTON_COMPONENT_DIR}/idf_component.yml" BUTTON_YML_CONTENT)
-string(REGEX MATCH "version:[ \t]*v?([0-9]+\\.[0-9]+\\.[0-9]+)" 
-    BUTTON_VERSION_MATCH "${BUTTON_YML_CONTENT}")
-
-if(BUTTON_VERSION_MATCH)
-    set(BUTTON_VERSION "${CMAKE_MATCH_1}")  # 提取 4.1.2
-    string(REPLACE "." ";" BUTTON_VERSION_LIST "${BUTTON_VERSION}")
-    list(GET BUTTON_VERSION_LIST 0 BUTTON_VERSION_MAJOR)
-    list(GET BUTTON_VERSION_LIST 1 BUTTON_VERSION_MINOR)
-    list(GET BUTTON_VERSION_LIST 2 BUTTON_VERSION_PATCH)
-    
-    # 传递宏到代码
-    target_compile_definitions(${COMPONENT_LIB} PUBLIC 
-        BUTTON_VERSION_MAJOR=${BUTTON_VERSION_MAJOR}
-        BUTTON_VERSION_MINOR=${BUTTON_VERSION_MINOR}
-        BUTTON_VERSION_PATCH=${BUTTON_VERSION_PATCH}
-        BUTTON_VERSION_STR="\"v${BUTTON_VERSION}\""
-    )
-    message(STATUS "Button 组件版本: v${BUTTON_VERSION}")
-else()
-    message(WARNING "Button 组件版本解析失败！")
-endif()
-
-
-
 if(CONFIG_BOARD_TYPE_ESP_HI)
 set(URL "https://github.com/espressif2022/image_player/raw/main/test_apps/test_8bit")
 set(SPIFFS_DIR "${CMAKE_BINARY_DIR}/emoji")
@@ -351,4 +309,3 @@ spiffs_create_partition_assets(
     MMAP_FILE_SUPPORT_FORMAT ".aaf"
 )
 endif()
-
